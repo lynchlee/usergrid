@@ -17,23 +17,26 @@
 package org.apache.usergrid.rest.management.organizations;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.common.collect.BiMap;
 import org.apache.usergrid.rest.RootResource;
 import org.apache.usergrid.rest.management.ManagementResource;
+import org.apache.usergrid.rest.security.annotations.RequireSystemAccess;
+import org.apache.usergrid.utils.UUIDUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jettison.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +73,33 @@ public class OrganizationsResource extends AbstractContextResource {
 
 
     public OrganizationsResource() {
+    }
+
+
+//    @RequireSystemAccess
+    @GET
+    public JSONWithPadding getOrganizations(@Context UriInfo ui,
+                                                  @QueryParam( "callback" ) @DefaultValue( "" ) String callback  )
+            throws Exception {
+
+        ApiResponse apiResponse = createApiResponse();
+        apiResponse.setAction("Get organizations");
+
+        ArrayNode datas = JsonNodeFactory.instance.arrayNode();
+
+        BiMap<UUID, String> organizations = management.getOrganizations();
+//        List<Map<String, String>> resultList = new ArrayList<Map<String, String>>();
+        for (UUID orgId : organizations.keySet()) {
+            ObjectNode orgNode = JsonNodeFactory.instance.objectNode();
+            orgNode.put("uuid", orgId.toString());
+            orgNode.put("name", organizations.get(orgId));
+
+            datas.add(orgNode);
+        }
+        apiResponse.setData(datas);
+
+        apiResponse.setSuccess();
+        return new JSONWithPadding(apiResponse, callback);
     }
 
 
