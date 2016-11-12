@@ -24,6 +24,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.inject.Injector;
+import org.apache.cassandra.thrift.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.shiro.UnavailableSecurityManagerException;
@@ -2834,6 +2835,10 @@ public class ManagementServiceImpl implements ManagementService {
    */
     @Override
     public void revokeAccessTokensForAppUser( UUID applicationId, UUID userId ) throws Exception {
+        if (Objects.isNull(userId)) {
+            throw new ApplicationUserNotFoundException("user not found.");
+        }
+
         revokeTokensForPrincipal( APPLICATION_USER, applicationId, userId );
     }
 
